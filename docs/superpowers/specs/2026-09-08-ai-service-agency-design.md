@@ -91,19 +91,21 @@ No separate subscription, contract, customer queue, or manual server-assignment 
 
 ## Technical Boundary
 
-The implementation should first prefer the official Big Ambitions mod loader and public mod API. It must verify that the installed game version exposes supported registration or extension points for business types, employee roles, furniture, hourly income, daily expenses, and business-management UI.
+The mod uses only Hovgaard Games' official Unity Modding SDK and the public APIs imported from the installed Big Ambitions game. The Unity project must use `2022.3.62f2`; content lives below `Assets/Mods/<mod-id>/`, is compiled through that SDK, and is installed with `Big Ambitions/Mod Builder` into `ModsLocal`.
 
-If the official API cannot register a required content type, the mod may use a minimal BepInEx IL2CPP compatibility layer only for the missing extension points. Runtime patches must remain isolated behind adapter interfaces, log their detected game version and failed bindings clearly, and disable only the unavailable feature instead of corrupting an existing save.
+The public SDK verifies registration paths for mod-owned `BusinessType` assets and furniture `Item` assets. The AI Service Agency must reuse the base-game `OfficeBusinessSimulator`, and its creation requirements must be copied from the selected original office-business asset after the game DLLs have been imported. It must not modify existing business, Programmer, or Computer Workstation assets.
 
-The mod must not redistribute game assemblies, base-game assets, or save files. It stores its data under a namespaced mod identifier and preserves save compatibility when the mod is removed by ignoring or safely retaining its own records.
+The installed-game API must still be inspected before implementation to confirm supported registration or extension points for an employee role, a dedicated AI skill, an hourly office-service product, periodic settlement, daily business expenses, and optional business-management UI. The mod must not use BepInEx, runtime patches, reflection-based private-member access, or other unsupported loaders as a fallback. If a required public API is absent, the unavailable design element is removed or redesigned before release; no partially functional business is exposed to players.
+
+The mod must not redistribute game assemblies, base-game assets, or save files. It uses a unique mod identifier for all assets and localization records, and stores only mod-owned state where a supported save-data API exists. Removing the mod must leave base-game save data untouched.
 
 ## Error Handling
 
-- Missing required game API capability: show a clear compatibility error and do not enable the AI agency creation option.
+- Missing required public API capability: do not register the AI Service Agency or its dependent content; document the unsupported game version and required SDK update.
 - Missing server-furniture registration: disable the agency because it cannot satisfy its production rule.
-- Missing optional UI hook: keep the business functional and report capacity through logs and existing business financial entries.
-- Invalid saved rack or employee data: skip the affected record, log a warning with its identifier, and continue loading the save.
-- Negative or malformed configuration value: use the documented default and report the rejected setting.
+- Missing optional UI hook: keep the business functional only when the confirmed financial and eligibility APIs remain available; document capacity through localized furniture descriptions and financial line items.
+- Invalid mod-owned saved data: skip settlement for the affected agency, log its persistent identifier, and leave game-owned data unmodified.
+- Invalid configuration value: use the documented default and report the rejected setting, provided the SDK's supported configuration API is available.
 
 ## Testing Strategy
 
