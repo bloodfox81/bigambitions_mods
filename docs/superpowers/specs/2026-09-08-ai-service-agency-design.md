@@ -1,12 +1,12 @@
-# AI Service Agency Mod Design
+# Big Ambitions Business Expansion Mod Design
 
 ## Goal
 
-Add an AI-focused office business to Big Ambitions without changing existing office businesses. The new business must use the same core loop as the base game: qualified employees work at computer workstations and automatically generate an hourly service fee.
+Add five retail businesses and one AI-focused office business to Big Ambitions without changing existing base-game businesses. Retail businesses use the base-game retail loop; the office business uses the base-game office loop, subject to confirmed public API support.
 
 ## Scope
 
-The mod adds the following content:
+The mod adds the following office content:
 
 - `AI Service Agency`, a new office business type.
 - `AI Engineer`, a new employee role with an AI skill.
@@ -15,7 +15,29 @@ The mod adds the following content:
 - `Enterprise AI Server Rack`, a server furniture item with five AI Engineer slots.
 - A daily fixed maintenance charge for every placed server rack.
 
-The mod does not alter the behavior, employee roles, prices, or revenue of the base game's law firms, graphic design firms, web development agencies, programmers, or other office businesses.
+The mod also adds these retail business types and their exclusive sellable products:
+
+| Business type | Localized name | Product group | Base-game systems reused |
+| --- | --- | --- | --- |
+| `Cosmetics Store` | `化妆品店` | Lipstick, foundation, perfume, skincare set, makeup brushes | Retail simulator, shelves/display cases, cash registers, Customer Service skill, retail product sourcing. |
+| `Pet Supply Store` | `宠物用品店` | Pet food, treats, toys, leashes, cat litter | Retail simulator, shelves/display cases, cash registers, Customer Service skill, retail product sourcing. |
+| `Optical Store` | `眼镜店` | Eyeglass frames, sunglasses, lenses, contact lenses, lens solution | Retail simulator, shelves/display cases, cash registers, Customer Service skill, retail product sourcing. |
+| `Building Block Store` | `积木店` | Construction set, architecture set, mechanical set, character set, loose bricks | Retail simulator, shelves/display cases, cash registers, Customer Service skill, retail product sourcing. |
+| `Music Store` | `乐器店` | Guitar, keyboard, drum kit, headphones, instrument accessories | Retail simulator, shelves/display cases, cash registers, Customer Service skill, retail product sourcing. |
+
+`Building Block Store` deliberately replaces the working title `Lego Store`. The mod must not use LEGO in business names, product names, logos, icons, product art, or marketing text.
+
+The mod does not alter the behavior, employee roles, prices, or revenue of any base-game retail business, law firm, graphic design firm, web development agency, Programmer, Computer Workstation, or other office business.
+
+## Retail Player Loop
+
+1. The player rents a retail-appropriate building and creates one of the five new retail businesses through the same creation flow as the selected base-game retail business.
+2. The player obtains each store's mod-owned products through the same supported retail product-source path as the base-game reference business.
+3. The player places stock on unmodified base-game shelves and display cases, then places normal base-game cash registers.
+4. The player hires and schedules employees using the base-game Customer Service skill and normal retail assignment rules.
+5. Base-game retail simulation creates customer demand, sales, wages, and financial records. The mod adds no retail-specific customers, furniture, staff role, skill, transaction hook, or custom settlement code.
+
+Each retail business has five exclusive products: three standard shelf products, one premium display product, and one replenishment product. The exact item placement capabilities, prices, product sources, business requirements, and creation conditions are copied only after inspecting the installed game's selected retail reference business and its compatible furniture.
 
 ## Player Loop
 
@@ -93,7 +115,7 @@ No separate subscription, contract, customer queue, or manual server-assignment 
 
 The mod uses only Hovgaard Games' official Unity Modding SDK and the public APIs imported from the installed Big Ambitions game. The Unity project must use `2022.3.62f2`; content lives below `Assets/Mods/<mod-id>/`, is compiled through that SDK, and is installed with `Big Ambitions/Mod Builder` into `ModsLocal`.
 
-The public SDK verifies registration paths for mod-owned `BusinessType` assets and furniture `Item` assets. The AI Service Agency must reuse the base-game `OfficeBusinessSimulator`, and its creation requirements must be copied from the selected original office-business asset after the game DLLs have been imported. It must not modify existing business, Programmer, or Computer Workstation assets.
+The public SDK verifies registration paths for mod-owned `BusinessType` assets and `Item` assets. Each retail business must reuse the selected base-game retail simulator and replicate the selected retail business's creation requirements, retail product sources, tags, employee primary skills, and compatible base-game furniture rules. The AI Service Agency must reuse the base-game `OfficeBusinessSimulator` and copy its original office-business creation requirements after the game DLLs have been imported. The mod must not modify existing business, Programmer, Computer Workstation, retail furniture, employee-role, or skill assets.
 
 The installed-game API must still be inspected before implementation to confirm supported registration or extension points for an employee role, a dedicated AI skill, an hourly office-service product, periodic settlement, daily business expenses, and optional business-management UI. The mod must not use BepInEx, runtime patches, reflection-based private-member access, or other unsupported loaders as a fallback. If a required public API is absent, the unavailable design element is removed or redesigned before release; no partially functional business is exposed to players.
 
@@ -103,6 +125,8 @@ The mod must not redistribute game assemblies, base-game assets, or save files. 
 
 - Missing required public API capability: do not register the AI Service Agency or its dependent content; document the unsupported game version and required SDK update.
 - Missing server-furniture registration: disable the agency because it cannot satisfy its production rule.
+- Missing required retail simulator, product-source, or compatible-furniture data: do not register the affected retail business or its products; other independent businesses remain available.
+- Missing retail product registration: do not register the dependent retail business, because it cannot operate without its exclusive stock.
 - Missing optional UI hook: keep the business functional only when the confirmed financial and eligibility APIs remain available; document capacity through localized furniture descriptions and financial line items.
 - Invalid mod-owned saved data: skip settlement for the affected agency, log its persistent identifier, and leave game-owned data unmodified.
 - Invalid configuration value: use the documented default and report the rejected setting, provided the SDK's supported configuration API is available.
@@ -110,6 +134,8 @@ The mod must not redistribute game assemblies, base-game assets, or save files. 
 ## Testing Strategy
 
 Unit tests cover configuration validation, slot-capacity aggregation, deterministic high-skill allocation, tie-breaking, eligibility calculation, service-fee calculation, and daily-maintenance calculation.
+
+Retail asset validation covers every business's unique namespaced product IDs, required localization entries, reference retail simulator, product source, Customer Service skill, base-game shelf/display compatibility, and the absence of modifications to base-game content.
 
 Integration tests use game-facing adapters with fakes to verify these scenarios:
 
@@ -121,7 +147,7 @@ Integration tests use game-facing adapters with fakes to verify these scenarios:
 - All placed racks create a daily expense, including empty racks.
 - Existing programmer and web-development-agency behavior is unchanged.
 
-In-game verification uses a fresh save and an existing save: create an agency, place both rack types, hire and schedule engineers, fill and exceed capacity, advance an in-game day, and verify both revenue and maintenance entries in business finances.
+In-game verification uses a fresh save and an existing save. For each retail business, create the business, source all five products, stock compatible base-game furniture, schedule base-game retail employees, and observe normal sales and finance entries. For the agency, place both rack types, hire and schedule engineers, fill and exceed capacity, advance an in-game day, and verify both revenue and maintenance entries in business finances.
 
 ## Non-Goals For First Release
 
@@ -130,3 +156,4 @@ In-game verification uses a fresh save and an existing save: create an agency, p
 - Server failures, heat, electricity networks, or consumable inventory.
 - Changes to existing base-game businesses or employee professions.
 - New player-facing unlock requirements beyond the normal office-business creation requirements.
+- New retail furniture, retail employee roles, retail skills, special retail customers, or retail transaction hooks.

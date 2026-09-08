@@ -1,10 +1,10 @@
-# AI Service Agency Implementation Plan
+# Big Ambitions Business Expansion Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build an official-SDK Big Ambitions mod that adds an AI Service Agency office business, mod-owned server-rack furniture, and the confirmed AI-service economy without altering base-game office content.
+**Goal:** Build an official-SDK Big Ambitions mod that adds five retail businesses plus an AI Service Agency office business without altering base-game content.
 
-**Architecture:** The mod is a Unity `2022.3.62f2` project based on Hovgaard Games' official SDK. A mod-owned Unity `BusinessType` asset reuses the base-game `OfficeBusinessSimulator`; mod-owned furniture is registered through the public item API. Role, skill, revenue, maintenance, and save integration are implemented only after the installed game's imported assemblies confirm public, supported APIs for each operation.
+**Architecture:** The mod is a Unity `2022.3.62f2` project based on Hovgaard Games' official SDK. Five mod-owned retail `BusinessType` assets and twenty-five mod-owned retail product `Item` assets reuse the confirmed base-game retail simulator, Customer Service skill, retail furniture, and product-source rules. The AI Service Agency reuses `OfficeBusinessSimulator`; its role, skill, revenue, maintenance, and save integration are implemented only after the installed game's imported assemblies confirm public APIs for each operation.
 
 **Tech Stack:** Unity `2022.3.62f2`, official Hovgaard Games Big Ambitions Modding SDK, C#, Unity AssetBundles, SDK Mod Builder, Big Ambitions through Steam.
 
@@ -15,6 +15,7 @@
 - The official SDK repository is `https://github.com/hovgaardgames/bigambitions` at inspected revision `1e03ddd5071b77a32cfd8bba89f0c130ba6c7d73`.
 - The SDK's supported content registration calls are `ModdingAPI.RegisterModBusinessType(BusinessType)` and `ItemsGetter.RegisterModItem(Item)`.
 - New office content must refer to the SDK's `Assets/_BaDependencies/BusinessSimulators/OfficeBusinessSimulator.asset`.
+- Retail content must use a verified base-game retail simulator, retail product-source IDs, and compatible unmodified base-game shelves/display cases; no retail furniture, retail role, retail skill, or retail settlement hook is added.
 - Unity scripts compile only after the SDK imports DLLs from an installed Big Ambitions copy. The game is not installed on this machine, so no mod code or Unity assets can yet be safely compiled or validated.
 - Build and installation must use `Big Ambitions/Mod Builder > Build & Install`; the SDK places the result in the game's `ModsLocal` folder. Do not manually package a DLL, ship game DLLs, or use BepInEx.
 
@@ -31,8 +32,11 @@
 | `Assets/Mods/absolute-ai-service-agency/Locales/en.json` | Localized names, descriptions, and financial labels for all mod-owned content. |
 | `Assets/Mods/absolute-ai-service-agency/absolute-ai-service-agency.asmdef` | SDK-compilable C# assembly definition with canonical imported game-DLL references. |
 | `Assets/Mods/absolute-ai-service-agency/ModManifest.asset` | SDK packager manifest. |
+| `Assets/Mods/absolute-ai-service-agency/Retail/` | Five retail `BusinessType` assets and the twenty-five exclusive mod-owned product `Item` assets. |
+| `Assets/Mods/absolute-ai-service-agency/Locales/en.json` | Localized office and retail business names, product names, and descriptions. |
 | `docs/runtime/big-ambitions-capability-profile.md` | Game version, confirmed public API signatures, and explicit unsupported capabilities. |
 | `docs/runtime/office-baseline.md` | Observed original office creation requirement and Programmer/service-fee financial baseline. |
+| `docs/runtime/retail-baseline.md` | Observed original retail business simulator, requirements, product sources, compatible furniture, and Customer Service skill. |
 | `docs/runtime/acceptance-results.md` | Fresh-save and existing-save acceptance evidence. |
 
 ### Task 1: Install And Bootstrap The Official SDK
@@ -87,7 +91,7 @@ git commit -m "docs: document Big Ambitions SDK bootstrap"
 
 - [ ] **Step 1: Inspect public types and members from imported assemblies**
 
-Use an IDE metadata viewer or ILSpy against the DLLs imported into `Assets/_BaDependencies/GameDlls/`. Record fully qualified type names and public method/property signatures for the following capabilities: business and furniture registration; `OfficeBusinessSimulator` inputs and hourly revenue flow; original Web Development Agency creation requirements; Computer Workstation identity and assignment rule; employee-role registration; skill registration; scheduled/current work state; business-owned furniture lookup; revenue recording; daily business-expense recording; and supported mod save data.
+Use an IDE metadata viewer or ILSpy against the DLLs imported into `Assets/_BaDependencies/GameDlls/`. Record fully qualified type names and public method/property signatures for business and item registration; retail simulator inputs; retail product-source and furniture compatibility; original retail creation requirements; `OfficeBusinessSimulator` inputs and hourly revenue flow; original Web Development Agency creation requirements; Computer Workstation assignment; employee-role registration; skill registration; scheduled/current work state; business-owned furniture lookup; revenue recording; daily business-expense recording; and supported mod save data.
 
 - [ ] **Step 2: Complete this capability matrix**
 
@@ -97,6 +101,11 @@ Add this table to `docs/runtime/big-ambitions-capability-profile.md`; each compl
 | --- | --- | --- | --- | --- |
 | Register business type | Yes | Unknown |  |  |
 | Register furniture item | Yes | Unknown |  |  |
+| Register retail product item | Yes | Unknown |  |  |
+| Reuse retail simulator | Yes | Unknown |  |  |
+| Reuse retail product sources | Yes | Unknown |  |  |
+| Validate shelf/display compatibility | Yes | Unknown |  |  |
+| Reuse Customer Service skill | Yes | Unknown |  |  |
 | Reuse office simulator | Yes | Unknown |  |  |
 | Register AI Engineer role | Yes | Unknown |  |  |
 | Register AI skill | Yes | Unknown |  |  |
@@ -140,7 +149,31 @@ git add docs/runtime/office-baseline.md
 git commit -m "docs: record original office business baseline"
 ```
 
-### Task 4: Create The Mod-Owned Unity Content
+### Task 4: Capture The Unmodified Retail Baseline
+
+**Files:**
+- Create: `docs/runtime/retail-baseline.md`
+
+- [ ] **Step 1: Select and inspect the original retail reference business**
+
+With no local mods enabled, inspect one original general retail business that supports mod-owned products and normal shelf/display sales. Record its `BusinessType` identity, simulator, suitable building type, tags, `businessRequirements`, product sources, Customer Service primary skill, creation flow, and customer-demand settings.
+
+- [ ] **Step 2: Record compatible unmodified furniture**
+
+For each selected original shelf, display case, and cash register, record its item identity, supported item type/placement capability, and the observed way it participates in normal retail sales. Identify at least one valid shelf and one valid display case before setting retail item metadata.
+
+- [ ] **Step 3: Observe normal retail sales and sourcing**
+
+On a mod-free save, source a reference product through every supported product-source route, stock it on the selected shelf and display case, hire and schedule a Customer Service employee, and record the observed sale and financial entry. The retail expansion must use this loop rather than custom revenue code.
+
+- [ ] **Step 4: Commit the baseline evidence**
+
+```powershell
+git add docs/runtime/retail-baseline.md
+git commit -m "docs: record original retail business baseline"
+```
+
+### Task 5: Create The Mod-Owned Unity Content
 
 **Files:**
 - Create: `Assets/Mods/absolute-ai-service-agency/ModManifest.asset`
@@ -152,6 +185,12 @@ git commit -m "docs: record original office business baseline"
 - Create: `Assets/Mods/absolute-ai-service-agency/AiServerRack.prefab`
 - Create: `Assets/Mods/absolute-ai-service-agency/EnterpriseAiServerRack.prefab`
 - Create: `Assets/Mods/absolute-ai-service-agency/Locales/en.json`
+- Create: `Assets/Mods/absolute-ai-service-agency/Retail/CosmeticsStore.asset`
+- Create: `Assets/Mods/absolute-ai-service-agency/Retail/PetSupplyStore.asset`
+- Create: `Assets/Mods/absolute-ai-service-agency/Retail/OpticalStore.asset`
+- Create: `Assets/Mods/absolute-ai-service-agency/Retail/BuildingBlockStore.asset`
+- Create: `Assets/Mods/absolute-ai-service-agency/Retail/MusicStore.asset`
+- Create: `Assets/Mods/absolute-ai-service-agency/Retail/Products/` containing 25 product `Item` assets
 
 - [ ] **Step 1: Create the manifest and assembly definition through Unity**
 
@@ -161,24 +200,32 @@ Create `Assets/Mods/absolute-ai-service-agency/`. Use `Assets > Create > Big Amb
 
 Create a mod-owned `BusinessType` named `AiServiceAgency`. Use localization ID `absolute-ai-service-agency:businesstype_ai_service_agency`, assign `Assets/_BaDependencies/BusinessSimulators/OfficeBusinessSimulator.asset`, and copy `suitableBuildingType`, tags, office service product, employee primary skill, and `businessRequirements` from `office-baseline.md`. Never edit the original office asset.
 
-- [ ] **Step 3: Create both furniture items and prefabs**
+- [ ] **Step 3: Create retail products and business assets in the Unity Inspector**
+
+Create five mod-owned retail `BusinessType` assets with IDs `cosmetics_store`, `pet_supply_store`, `optical_store`, `building_block_store`, and `music_store`. For all five, copy the confirmed retail simulator, suitable building type, tags, product sources, Customer Service skill, customer-demand settings, and creation requirements from `retail-baseline.md`.
+
+Create exactly five unique, mod-owned product `Item` assets per business: Cosmetics: lipstick, foundation, perfume, skincare set, makeup brushes. Pet Supply: pet food, treats, toys, leashes, cat litter. Optical: eyeglass frames, sunglasses, lenses, contact lenses, lens solution. Building Block: construction set, architecture set, mechanical set, character set, loose bricks. Music: guitar, keyboard, drum kit, headphones, instrument accessories.
+
+Set every retail product's item type, price, product source, and shelf/display capability from the observed compatible base-game reference products. The business asset's `businessProducts` list must contain only its own five namespaced product IDs. Do not create new retail furniture, new retail staff roles, new retail skills, custom retail customers, or retail settlement code. Do not use `Lego` in any ID, localization value, icon, asset, or visual.
+
+- [ ] **Step 4: Create both office furniture items and prefabs**
 
 Create matching mod-owned `Item` assets and prefabs for two racks. Set `isFurniture` true, use unique names/localization IDs, and use only compatible observed placement metadata. Localized descriptions must state `2 AI Engineer server slots` for the basic rack and `5 AI Engineer server slots` for the enterprise rack. Set price and maintenance only after Task 3's Programmer baseline is known.
 
-- [ ] **Step 4: Implement load and unload registration using confirmed APIs**
+- [ ] **Step 5: Implement load and unload registration using confirmed APIs**
 
-Follow the official `ExampleBusinessTypeMod` and `ExampleFurnitureMod` lifecycle: load the AssetBundle with `AssetService.GetBundle`, load the three assets by asset path, register both furniture `Item` objects and the `BusinessType`, then unregister the same objects in `OnUnloadAsync`. Fail load clearly for a missing AssetBundle asset. Do not register content before Task 2's required matrix is complete.
+Follow the official `ExampleBusinessTypeMod` and `ExampleFurnitureMod` lifecycle: load the AssetBundle with `AssetService.GetBundle`, load the five retail `BusinessType` assets, twenty-five retail product `Item` assets, two office furniture `Item` assets, and office `BusinessType` by asset path. Register all items before their dependent business types; unregister business types before their items in `OnUnloadAsync`. Fail load clearly for a missing AssetBundle asset. The retail assets may register only after the retail rows in Task 2 and Task 4 baseline are complete. The office business may register only after Task 2's office requirements are complete.
 
-- [ ] **Step 5: Add localization, compile, validate, and commit**
+- [ ] **Step 6: Add localization, compile, validate, and commit**
 
-Add `Locales/en.json` entries for agency, AI Engineer, AI skill, service fee, both furniture names/descriptions, server-capacity status, `Hourly AI Service Fee`, and `AI Server Maintenance`. Every key begins `absolute-ai-service-agency:`. Confirm the Unity Console has no compilation errors and run `Big Ambitions/Mod Builder` validation. Commit only source and Unity assets, never `Library/`, `Temp/`, `Logs/`, imported game DLLs, or `ModsLocal` output.
+Add `Locales/en.json` entries for all six business types, all twenty-five retail products, AI Engineer, AI skill, service fee, both office furniture names/descriptions, server-capacity status, `Hourly AI Service Fee`, and `AI Server Maintenance`. Every key begins `absolute-ai-service-agency:`. Confirm the Unity Console has no compilation errors and run `Big Ambitions/Mod Builder` validation. Commit only source and Unity assets, never `Library/`, `Temp/`, `Logs/`, imported game DLLs, or `ModsLocal` output.
 
 ```powershell
 git add Assets/Mods/absolute-ai-service-agency README.md
-git commit -m "feat: add AI service agency Unity content"
+git commit -m "feat: add business expansion Unity content"
 ```
 
-### Task 5: Implement Confirmed AI-Service Economy Hooks
+### Task 6: Implement Confirmed AI-Service Economy Hooks
 
 **Files:**
 - Modify: `Assets/Mods/absolute-ai-service-agency/Scripts/AiServiceAgencyMod.cs`
@@ -211,7 +258,7 @@ git add Assets/Mods/absolute-ai-service-agency/Scripts Assets/Mods/absolute-ai-s
 git commit -m "feat: add AI service capacity and settlement"
 ```
 
-### Task 6: Build, Install, And Verify Save Safety
+### Task 7: Build, Install, And Verify Save Safety
 
 **Files:**
 - Create: `docs/runtime/acceptance-results.md`
@@ -223,11 +270,11 @@ Use `Big Ambitions/Mod Builder > Build & Install`. Confirm validation passes and
 
 - [ ] **Step 2: Test a fresh save and record evidence**
 
-Record save name, version, and financial evidence in `docs/runtime/acceptance-results.md` for: original office creation prerequisites with no extra unlock; one workstation/rack/working AI Engineer producing service revenue; a working engineer without a workstation producing no service revenue; over-capacity high-skill and ID tie allocation; unused rack daily maintenance; two enterprise racks covering ten employees; and ten enterprise racks covering fifty employees.
+Record save name, version, and financial evidence in `docs/runtime/acceptance-results.md` for each retail business: original retail creation prerequisites with no extra unlock; all five exclusive products available through the recorded product source; successful shelf/display stocking; scheduled Customer Service employee; normal retail sales; and no changes to the original retail business. Also record: original office creation prerequisites with no extra unlock; one workstation/rack/working AI Engineer producing service revenue; a working engineer without a workstation producing no service revenue; over-capacity high-skill and ID tie allocation; unused rack daily maintenance; two enterprise racks covering ten employees; and ten enterprise racks covering fifty employees.
 
 - [ ] **Step 3: Test existing-save non-regression**
 
-With the mod enabled, open the mod-free baseline save from Task 3 and confirm original Web Development Agency, Programmer wage, service fee, and Computer Workstation behavior match `office-baseline.md`. Disable the mod and reopen the same save; confirm the original business loads without data changes.
+With the mod enabled, open the mod-free baseline saves from Tasks 3 and 4. Confirm original Web Development Agency, Programmer wage, service fee, Computer Workstation behavior, retail business behavior, retail furniture behavior, Customer Service employee behavior, and retail finance entries match their baseline documents. Disable the mod and reopen both saves; confirm their original businesses load without data changes.
 
 - [ ] **Step 4: Final source verification and commit**
 
